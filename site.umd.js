@@ -49,6 +49,7 @@
                 __extends(class_1, _super);
                 function class_1() {
                     var _this = _super.call(this) || this;
+                    _this.props = {};
                     if (!_this.shadowRoot) {
                         _this.attachShadow({ mode: 'open' });
                     }
@@ -65,6 +66,7 @@
                     var watchAttributes = this.constructor.watchAttributes;
                     if (watchAttributes && watchAttributes[name] && oldValue != newValue) {
                         var methodToCall = watchAttributes[name];
+                        this.props[name] = newValue;
                         this[methodToCall](oldValue, newValue);
                     }
                 };
