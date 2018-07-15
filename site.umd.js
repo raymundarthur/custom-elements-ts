@@ -50,6 +50,7 @@
                 function class_1() {
                     var _this = _super.call(this) || this;
                     _this.props = {};
+                    _this.__connected = false;
                     if (!_this.shadowRoot) {
                         _this.attachShadow({ mode: 'open' });
                     }
@@ -70,6 +71,7 @@
                     }
                 };
                 class_1.prototype.connectedCallback = function () {
+                    this.__connected = true;
                     this.__render();
                     _super.prototype.connectedCallback && _super.prototype.connectedCallback.call(this);
                 };
