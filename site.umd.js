@@ -69,10 +69,10 @@
                     }
                 };
                 class_1.prototype.connectedCallback = function () {
-                    this.render();
+                    this.__render();
                     _super.prototype.connectedCallback && _super.prototype.connectedCallback.call(this);
                 };
-                class_1.prototype.render = function () {
+                class_1.prototype.__render = function () {
                     var template = document.createElement('template');
                     template.innerHTML = "\n          <style>" + (args.style ? args.style : '') + "</style>\n          " + (args.template ? args.template : '');
                     this.shadowRoot.appendChild(document.importNode(template.content, true));
