@@ -66,7 +66,6 @@
                     var watchAttributes = this.constructor.watchAttributes;
                     if (watchAttributes && watchAttributes[name] && oldValue != newValue) {
                         var methodToCall = watchAttributes[name];
-                        this.props[name] = newValue;
                         this[methodToCall](oldValue, newValue);
                     }
                 };
