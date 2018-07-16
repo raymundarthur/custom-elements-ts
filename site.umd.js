@@ -67,7 +67,7 @@
                     var watchAttributes = this.constructor.watchAttributes;
                     if (watchAttributes && watchAttributes[name] && oldValue != newValue) {
                         var methodToCall = watchAttributes[name];
-                        this[methodToCall](oldValue, newValue);
+                        this[methodToCall]({ old: oldValue, new: newValue });
                     }
                 };
                 class_1.prototype.connectedCallback = function () {
