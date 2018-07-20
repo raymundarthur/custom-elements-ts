@@ -74,11 +74,13 @@
                     }
                 };
                 class_1.prototype.connectedCallback = function () {
-                    this.__connected = true;
                     this.__render();
                     _super.prototype.connectedCallback && _super.prototype.connectedCallback.call(this);
+                    this.__connected = true;
                 };
                 class_1.prototype.__render = function () {
+                    if (this.__connected)
+                        return;
                     var template = document.createElement('template');
                     template.innerHTML = "\n          <style>" + (args.style ? args.style : '') + "</style>\n          " + (args.template ? args.template : '');
                     this.shadowRoot.appendChild(document.importNode(template.content, true));
