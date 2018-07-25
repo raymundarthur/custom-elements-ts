@@ -44,6 +44,26 @@
         if (typeof Reflect === "object" && typeof Reflect.metadata === "function") return Reflect.metadata(metadataKey, metadataValue);
     }
 
+    var addEventListeners = function (target) {
+        if (target.constructor.listeners) {
+            var _loop_1 = function (listener) {
+                var eventTarget = (listener.selector)
+                    ? target.shadowRoot.querySelector(listener.selector)
+                        ? target.shadowRoot.querySelector(listener.selector) : null
+                    : target;
+                if (eventTarget) {
+                    eventTarget.addEventListener(listener.eventName, function (e) {
+                        listener.handler.call(target, e);
+                    });
+                }
+            };
+            for (var _i = 0, _a = target.constructor.listeners; _i < _a.length; _i++) {
+                var listener = _a[_i];
+                _loop_1(listener);
+            }
+        }
+    };
+
     var CustomElement = function (args) {
         return function (target) {
             var toKebabCase = function (string) { return string.replace(/([a-z])([A-Z])/g, '$1-$2').replace(/\s+/g, '-').toLowerCase(); };
@@ -52,8 +72,8 @@
                 __extends(class_1, _super);
                 function class_1() {
                     var _this = _super.call(this) || this;
-                    _this.props = {};
                     _this.__connected = false;
+                    _this.props = {};
                     if (!_this.shadowRoot) {
                         _this.attachShadow({ mode: 'open' });
                     }
@@ -77,6 +97,7 @@
                     this.__render();
                     _super.prototype.connectedCallback && _super.prototype.connectedCallback.call(this);
                     this.__connected = true;
+                    addEventListeners(this);
                 };
                 class_1.prototype.__render = function () {
                     if (this.__connected)
