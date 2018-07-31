@@ -64,50 +64,77 @@
         }
     };
 
+    var initializeProps = function (target) {
+        var watchAttributes = target.constructor.watchAttributes;
+        if (watchAttributes) {
+            for (var _i = 0, _a = Object.keys(watchAttributes); _i < _a.length; _i++) {
+                var name_1 = _a[_i];
+                var attribValue = target.constructor.props[name_1] || target.getAttribute(name_1);
+                target[watchAttributes[name_1]]({ new: attribValue });
+            }
+        }
+        var propsInit = target.constructor.propsInit;
+        if (propsInit) {
+            for (var _b = 0, _c = Object.keys(propsInit); _b < _c.length; _b++) {
+                var name_2 = _c[_b];
+                if (!target.hasAttribute(name_2)) {
+                    target[name_2] = propsInit[name_2];
+                }
+            }
+        }
+    };
+
     var CustomElement = function (args) {
         return function (target) {
+            var _a;
             var toKebabCase = function (string) { return string.replace(/([a-z])([A-Z])/g, '$1-$2').replace(/\s+/g, '-').toLowerCase(); };
             var tag = args.tag || toKebabCase(target.prototype.constructor.name);
-            var customElement = (function (_super) {
-                __extends(class_1, _super);
-                function class_1() {
-                    var _this = _super.call(this) || this;
-                    _this.__connected = false;
-                    _this.props = {};
-                    if (!_this.shadowRoot) {
-                        _this.attachShadow({ mode: 'open' });
+            var customElement = (_a = (function (_super) {
+                    __extends(class_1, _super);
+                    function class_1() {
+                        var _this = _super.call(this) || this;
+                        if (!_this.shadowRoot) {
+                            _this.attachShadow({ mode: 'open' });
+                        }
+                        return _this;
                     }
-                    return _this;
-                }
-                Object.defineProperty(class_1, "observedAttributes", {
-                    get: function () {
-                        return Object.keys(this.watchAttributes || {});
-                    },
-                    enumerable: true,
-                    configurable: true
-                });
-                class_1.prototype.attributeChangedCallback = function (name, oldValue, newValue) {
-                    var watchAttributes = this.constructor.watchAttributes;
-                    if (watchAttributes && watchAttributes[name] && oldValue != newValue) {
-                        var methodToCall = watchAttributes[name];
-                        this[methodToCall]({ old: oldValue, new: newValue });
-                    }
-                };
-                class_1.prototype.connectedCallback = function () {
-                    this.__render();
-                    _super.prototype.connectedCallback && _super.prototype.connectedCallback.call(this);
-                    this.__connected = true;
-                    addEventListeners(this);
-                };
-                class_1.prototype.__render = function () {
-                    if (this.__connected)
-                        return;
-                    var template = document.createElement('template');
-                    template.innerHTML = "\n          <style>" + (args.style ? args.style : '') + "</style>\n          " + (args.template ? args.template : '');
-                    this.shadowRoot.appendChild(document.importNode(template.content, true));
-                };
-                return class_1;
-            }(target));
+                    Object.defineProperty(class_1, "observedAttributes", {
+                        get: function () {
+                            return Object.keys(this.watchAttributes || {});
+                        },
+                        enumerable: true,
+                        configurable: true
+                    });
+                    class_1.prototype.attributeChangedCallback = function (name, oldValue, newValue) {
+                        var watchAttributes = this.constructor.watchAttributes;
+                        if (watchAttributes && watchAttributes[name] && oldValue != newValue) {
+                            var methodToCall = watchAttributes[name];
+                            if (this.__connected) {
+                                this[methodToCall]({ old: oldValue, new: newValue });
+                            }
+                            this[name] = newValue;
+                        }
+                    };
+                    class_1.prototype.connectedCallback = function () {
+                        this.__render();
+                        _super.prototype.connectedCallback && _super.prototype.connectedCallback.call(this);
+                        this.__connected = true;
+                        addEventListeners(this);
+                        initializeProps(this);
+                    };
+                    class_1.prototype.__render = function () {
+                        if (this.__connected)
+                            return;
+                        var template = document.createElement('template');
+                        template.innerHTML = "\n          <style>" + (args.style ? args.style : '') + "</style>\n          " + (args.template ? args.template : '');
+                        this.shadowRoot.appendChild(document.importNode(template.content, true));
+                    };
+                    return class_1;
+                }(target)),
+                _a.__connected = false,
+                _a.props = {},
+                _a.propsInit = {},
+                _a);
             if (!customElements.get(tag)) {
                 customElements.define(tag, customElement);
             }
