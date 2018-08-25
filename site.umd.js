@@ -112,7 +112,6 @@
                             if (this.__connected) {
                                 this[methodToCall]({ old: oldValue, new: newValue });
                             }
-                            this[name] = newValue;
                         }
                     };
                     class_1.prototype.connectedCallback = function () {
