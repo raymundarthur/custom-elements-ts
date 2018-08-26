@@ -64,12 +64,18 @@
         }
     };
 
+    var toKebabCase = function (str) {
+        return str
+            .replace(/([a-z])([A-Z])/g, '$1-$2')
+            .replace(/[\s_]+/g, '-')
+            .toLowerCase();
+    };
     var initializeProps = function (target) {
         var watchAttributes = target.constructor.watchAttributes;
         if (watchAttributes) {
             for (var _i = 0, _a = Object.keys(watchAttributes); _i < _a.length; _i++) {
                 var name_1 = _a[_i];
-                var attribValue = target.constructor.props[name_1] || target.getAttribute(name_1);
+                var attribValue = target.props[name_1] || target.getAttribute(toKebabCase(name_1));
                 target[watchAttributes[name_1]]({ new: attribValue });
             }
         }
@@ -87,12 +93,12 @@
     var CustomElement = function (args) {
         return function (target) {
             var _a;
-            var toKebabCase = function (string) { return string.replace(/([a-z])([A-Z])/g, '$1-$2').replace(/\s+/g, '-').toLowerCase(); };
             var tag = args.tag || toKebabCase(target.prototype.constructor.name);
             var customElement = (_a = (function (_super) {
                     __extends(class_1, _super);
                     function class_1() {
                         var _this = _super.call(this) || this;
+                        _this.props = {};
                         if (!_this.shadowRoot) {
                             _this.attachShadow({ mode: 'open' });
                         }
@@ -131,7 +137,6 @@
                     return class_1;
                 }(target)),
                 _a.__connected = false,
-                _a.props = {},
                 _a.propsInit = {},
                 _a);
             if (!customElements.get(tag)) {
