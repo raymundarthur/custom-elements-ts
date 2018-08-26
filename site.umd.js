@@ -33,6 +33,17 @@
         d.prototype = b === null ? Object.create(b) : (__.prototype = b.prototype, new __());
     }
 
+    var __assign = function() {
+        __assign = Object.assign || function __assign(t) {
+            for (var s, i = 1, n = arguments.length; i < n; i++) {
+                s = arguments[i];
+                for (var p in s) if (Object.prototype.hasOwnProperty.call(s, p)) t[p] = s[p];
+            }
+            return t;
+        };
+        return __assign.apply(this, arguments);
+    };
+
     function __decorate(decorators, target, key, desc) {
         var c = arguments.length, r = c < 3 ? target : desc === null ? desc = Object.getOwnPropertyDescriptor(target, key) : desc, d;
         if (typeof Reflect === "object" && typeof Reflect.decorate === "function") r = Reflect.decorate(decorators, target, key, desc);
@@ -43,6 +54,18 @@
     function __metadata(metadataKey, metadataValue) {
         if (typeof Reflect === "object" && typeof Reflect.metadata === "function") return Reflect.metadata(metadataKey, metadataValue);
     }
+
+    var toKebabCase = function (str) {
+        return str
+            .replace(/([a-z])([A-Z])/g, '$1-$2')
+            .replace(/[\s_]+/g, '-')
+            .toLowerCase();
+    };
+    var toCamelCase = function (str) {
+        return str
+            .toLowerCase()
+            .replace(/(\-\w)/g, function (m) { return m[1].toUpperCase(); });
+    };
 
     var addEventListeners = function (target) {
         if (target.constructor.listeners) {
@@ -64,27 +87,31 @@
         }
     };
 
-    var toKebabCase = function (str) {
-        return str
-            .replace(/([a-z])([A-Z])/g, '$1-$2')
-            .replace(/[\s_]+/g, '-')
-            .toLowerCase();
+    var getProps = function (target) {
+        var watchAttributes = target.constructor.watchAttributes;
+        var plainAttributes = __assign({}, watchAttributes);
+        Object.keys(plainAttributes).forEach(function (v) { return plainAttributes[v] = ''; });
+        var cycleProps = __assign({}, plainAttributes, target.constructor.propsInit);
+        return Object.keys(cycleProps);
     };
     var initializeProps = function (target) {
         var watchAttributes = target.constructor.watchAttributes;
-        if (watchAttributes) {
-            for (var _i = 0, _a = Object.keys(watchAttributes); _i < _a.length; _i++) {
-                var name_1 = _a[_i];
-                var attribValue = target.props[name_1] || target.getAttribute(toKebabCase(name_1));
-                target[watchAttributes[name_1]]({ new: attribValue });
+        for (var _i = 0, _a = getProps(target); _i < _a.length; _i++) {
+            var prop = _a[_i];
+            if (watchAttributes) {
+                if (watchAttributes[toKebabCase(prop)] == null) {
+                    watchAttributes[toKebabCase(prop)] = '';
+                }
+                else {
+                    var attribValue = target.props[prop] || target.getAttribute(toKebabCase(prop));
+                    if (typeof target[watchAttributes[prop]] == 'function') {
+                        target[watchAttributes[prop]]({ new: attribValue });
+                    }
+                }
             }
-        }
-        var propsInit = target.constructor.propsInit;
-        if (propsInit) {
-            for (var _b = 0, _c = Object.keys(propsInit); _b < _c.length; _b++) {
-                var name_2 = _c[_b];
-                if (!target.hasAttribute(name_2)) {
-                    target[name_2] = propsInit[name_2];
+            if (target.constructor.propsInit[prop]) {
+                if (!target.hasAttribute(toKebabCase(prop))) {
+                    target[prop] = target.constructor.propsInit[prop];
                 }
             }
         }
@@ -106,17 +133,28 @@
                     }
                     Object.defineProperty(class_1, "observedAttributes", {
                         get: function () {
-                            return Object.keys(this.watchAttributes || {});
+                            return Object.keys(this.propsInit || {}).map(function (x) { return toKebabCase(x); });
                         },
                         enumerable: true,
                         configurable: true
                     });
                     class_1.prototype.attributeChangedCallback = function (name, oldValue, newValue) {
-                        var watchAttributes = this.constructor.watchAttributes;
-                        if (watchAttributes && watchAttributes[name] && oldValue != newValue) {
-                            var methodToCall = watchAttributes[name];
-                            if (this.__connected) {
-                                this[methodToCall]({ old: oldValue, new: newValue });
+                        this.onAttributeChange(name, oldValue, newValue);
+                    };
+                    class_1.prototype.onAttributeChange = function (name, oldValue, newValue, set) {
+                        if (set === void 0) { set = true; }
+                        if (oldValue != newValue) {
+                            if (set) {
+                                this[toCamelCase(name)] = newValue;
+                            }
+                            var watchAttributes = this.constructor.watchAttributes;
+                            if (watchAttributes && watchAttributes[name]) {
+                                var methodToCall = watchAttributes[name];
+                                if (this.__connected) {
+                                    if (typeof this[methodToCall] == 'function') {
+                                        this[methodToCall]({ old: oldValue, new: newValue });
+                                    }
+                                }
                             }
                         }
                     };
@@ -137,7 +175,6 @@
                     return class_1;
                 }(target)),
                 _a.__connected = false,
-                _a.propsInit = {},
                 _a);
             if (!customElements.get(tag)) {
                 customElements.define(tag, customElement);
