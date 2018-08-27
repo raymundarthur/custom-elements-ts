@@ -126,7 +126,8 @@
                     function class_1() {
                         var _this = _super.call(this) || this;
                         _this.props = {};
-                        if (!_this.shadowRoot) {
+                        _this.showShadowRoot = args.shadow == null ? true : args.shadow;
+                        if (!_this.shadowRoot && _this.showShadowRoot) {
                             _this.attachShadow({ mode: 'open' });
                         }
                         return _this;
@@ -169,8 +170,9 @@
                         if (this.__connected)
                             return;
                         var template = document.createElement('template');
-                        template.innerHTML = "\n          <style>" + (args.style ? args.style : '') + "</style>\n          " + (args.template ? args.template : '');
-                        this.shadowRoot.appendChild(document.importNode(template.content, true));
+                        var style = " <style>" + (args.style ? args.style : '') + "</style>";
+                        template.innerHTML = "" + (this.showShadowRoot ? style : '') + (args.template ? args.template : '');
+                        (this.showShadowRoot ? this.shadowRoot : this).appendChild(document.importNode(template.content, true));
                     };
                     return class_1;
                 }(target)),
